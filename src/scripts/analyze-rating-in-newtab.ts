@@ -10,6 +10,7 @@ import {statusText} from '../common/score-fetch-progress';
 import {getScriptHost} from '../common/script-host';
 import {SongDatabase} from '../common/song-props';
 import {fetchAllSongs, getPostMessageFunc, handleError} from '../common/util';
+import {IFRAME_ID, addIframe, addFocusIframeListener} from './iframe-view';
 
 declare global {
   interface Window {
@@ -95,16 +96,18 @@ declare global {
     const analyzeRatingLink = document.createElement('a');
     analyzeRatingLink.className = 'f_14';
     analyzeRatingLink.style.color = '#1477e6';
-    analyzeRatingLink.target = 'selfRating';
+    analyzeRatingLink.target = IFRAME_ID;
     analyzeRatingLink.append(UIString[LANG].analyze);
     analyzeRatingLink.href = BASE_URL + '/rating-calculator/?' + urlSearch;
+    addFocusIframeListener(analyzeRatingLink);
 
     const analyzePlatesLink = document.createElement('a');
     analyzePlatesLink.className = 'f_14';
     analyzePlatesLink.style.color = '#1477e6';
-    analyzePlatesLink.target = 'plateProgress';
+    analyzePlatesLink.target = IFRAME_ID;
     analyzePlatesLink.append(UIString[LANG].plateProgress);
     analyzePlatesLink.href = BASE_URL + '/plate-progress/?' + urlSearch;
+    addFocusIframeListener(analyzePlatesLink);
 
     analyzeSpan.append(analyzeRatingLink, ' / ', analyzePlatesLink, document.createElement('br'));
 
@@ -125,6 +128,7 @@ declare global {
       handleError(UIString[LANG].pleaseLogIn);
       return;
     }
+    addIframe();
     const playerName = isOnFriendPage ? null : getPlayerName(document.body);
     insertAnalyzeButton(playerName);
     const gameVerPromise = fetchGameVersion(document.body);
@@ -138,7 +142,7 @@ declare global {
       console.log(evt.origin, evt.data);
       if (true) { //ALLOWED_ORIGINS.includes(evt.origin)) {
         //const send = getPostMessageFunc(evt.source as WindowProxy, evt.origin);
-        const send = getPostMessageFunc((document.getElementById('aaa') as HTMLIFrameElement).contentWindow as WindowProxy, evt.origin);
+        const send = getPostMessageFunc((document.getElementById('bookmarkletView') as HTMLIFrameElement).contentWindow as WindowProxy, evt.origin);
         if (typeof evt.data === 'object') {
           if (evt.data.action === 'ready') {
             send('gameVersion', await gameVerPromise);

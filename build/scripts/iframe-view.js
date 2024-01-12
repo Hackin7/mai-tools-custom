@@ -1,0 +1,1 @@
+(()=>{"use strict";var I;(I={}).IFRAME_ID=void 0,I.IFRAME_ID="bookmarkletView"})();

@@ -13,6 +13,7 @@ import {statusText} from '../common/score-fetch-progress';
 import {getScriptHost} from '../common/script-host';
 import {SongDatabase} from '../common/song-props';
 import {fetchAllSongs, getPostMessageFunc, handleError} from '../common/util';
+import {IFRAME_ID, addIframe, addFocusIframeListener} from './iframe-view';
 
 declare global {
   interface Window {
@@ -81,16 +82,18 @@ type FriendInfo = {
     const analyzeRatingLink = d.createElement('a');
     analyzeRatingLink.className = 'f_14';
     analyzeRatingLink.style.color = '#1477e6';
-    analyzeRatingLink.target = 'friendRating';
+    analyzeRatingLink.target = IFRAME_ID;
     analyzeRatingLink.innerText = UIString[LANG].analyze;
     analyzeRatingLink.href = BASE_URL + '/rating-calculator/?' + queryParams;
+    addFocusIframeListener(analyzeRatingLink);
 
     const analyzePlatesLink = document.createElement('a');
     analyzePlatesLink.className = 'f_14';
     analyzePlatesLink.style.color = '#1477e6';
-    analyzePlatesLink.target = 'plateProgress';
+    analyzePlatesLink.target = IFRAME_ID;
     analyzePlatesLink.append(UIString[LANG].plateProgress);
     analyzePlatesLink.href = BASE_URL + '/plate-progress/?' + queryParams;
+    addFocusIframeListener(analyzePlatesLink);
 
     analyzeSpan.append(analyzeRatingLink, ' / ', analyzePlatesLink);
 
@@ -143,6 +146,7 @@ type FriendInfo = {
       handleError(UIString[LANG].pleaseLogIn);
       return;
     }
+    addIframe();
     if (
       location.pathname.includes('/friendLevelVs/') ||
       location.pathname.includes('/friendGenreVs/')
@@ -189,7 +193,7 @@ type FriendInfo = {
       console.log(evt.origin, evt.data);
       if (true){ //ALLOWED_ORIGINS.includes(evt.origin)) {
         //const send = getPostMessageFunc(evt.source as WindowProxy, evt.origin);
-        const send = getPostMessageFunc((document.getElementById('aaa') as HTMLIFrameElement).contentWindow as WindowProxy, evt.origin);
+        const send = getPostMessageFunc((document.getElementById('bookmarkletView') as HTMLIFrameElement).contentWindow as WindowProxy, evt.origin);
         if (typeof evt.data !== 'object') {
           return;
         }

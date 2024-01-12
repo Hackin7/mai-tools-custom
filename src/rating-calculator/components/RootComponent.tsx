@@ -187,7 +187,6 @@ export class RootComponent extends React.PureComponent<{}, State> {
   };
 
   private postMessageToOpener(data: {action: string; payload?: string | number}) {
-    //alert("Post message to opener");
     if (window.opener) {
       if (this.referrer) {
         window.opener.postMessage(data, this.referrer);
@@ -199,7 +198,6 @@ export class RootComponent extends React.PureComponent<{}, State> {
         }
       }
     }
-    //alert("Post message to parent");
     if (window.parent) {  
       if (this.referrer) {
         window.parent.postMessage(data, this.referrer);

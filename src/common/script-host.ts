@@ -25,14 +25,11 @@ export function getScriptHost(scriptName: string): string {
  * Can be used by scripts running on maimai NET or scripts on mai-tools itself.
  */
 export function getMaiToolsBaseUrl(): string {
-  if (window.location.origin == 'https://hackin7.github.io') {
-    return window.location.origin + '/mai-tools-custom/build';
-  }
   if (isMaimaiNetOrigin(window.location.origin)) {
     return FALLBACK_MAI_TOOLS_BASE_URL;
   }
   if (window.location.pathname.startsWith('/mai-tools')) {
-    return window.location.origin + '/mai-tools';
+    return window.location.origin + '/mai-tools-custom/build';
   }
   if (window.location.pathname.startsWith('/build')) {
     return window.location.origin + '/build';

@@ -187,7 +187,7 @@ export class RootComponent extends React.PureComponent<{}, State> {
   };
 
   private postMessageToOpener(data: {action: string; payload?: string | number}) {
-    alert("Post message to opener");
+    //alert("Post message to opener");
     if (window.opener) {
       if (this.referrer) {
         window.opener.postMessage(data, this.referrer);
@@ -199,7 +199,7 @@ export class RootComponent extends React.PureComponent<{}, State> {
         }
       }
     }
-    alert("Post message to parent");
+    //alert("Post message to parent");
     if (window.parent) {  
       if (this.referrer) {
         window.parent.postMessage(data, this.referrer);
@@ -253,8 +253,6 @@ export class RootComponent extends React.PureComponent<{}, State> {
           break;
         case 'allSongs':
           this.setState({allSongs: evt.data.payload});
-          alert(JSON.stringify(evt.data.payload));
-          console.log(evt.data.payload);
           break;
       }
     });

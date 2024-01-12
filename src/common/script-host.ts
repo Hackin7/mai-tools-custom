@@ -26,7 +26,7 @@ export function getScriptHost(scriptName: string): string {
  */
 export function getMaiToolsBaseUrl(): string {
   if (window.location.origin == 'https://hackin7.github.io') {
-    window.location.origin + '/mai-tools-custom/build';
+    return window.location.origin + '/mai-tools-custom/build';
   }
   if (isMaimaiNetOrigin(window.location.origin)) {
     return FALLBACK_MAI_TOOLS_BASE_URL;

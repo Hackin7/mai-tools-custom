@@ -45,7 +45,7 @@ export class RootComponent extends React.PureComponent<{}, State> {
       progress: '',
       playerScores: [],
     };
-    if (window.opener) {
+    if (window.opener || window.parent) {
       this.initWindowCommunication();
     }
   }
@@ -80,7 +80,6 @@ export class RootComponent extends React.PureComponent<{}, State> {
   };
 
   private postMessageToOpener(data: {action: string; payload?: string | number}) {
-    alert('posting');
     if (window.opener) {
       if (this.referrer) {
         window.opener.postMessage(data, this.referrer);
@@ -93,7 +92,6 @@ export class RootComponent extends React.PureComponent<{}, State> {
       }
     }
     if (window.parent) {  
-      alert('sending to parent');
       if (this.referrer) {
         window.parent.postMessage(data, this.referrer);
       } else {

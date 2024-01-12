@@ -31,3 +31,13 @@ Code Search
 
 Using SourceGraph
 https://sourcegraph.com/search?q=context%3Aglobal+repo%3A%5Egithub%5C.com%2Fmyjian%2Fmai-tools%24+GameRegion&patternType=standard&sm=1&groupBy=path (replace GameRegion with whatever you want to find)
+
+
+The edits made are a bit messy (due to eol issues)
+so here's a quick command for reference
+
+Update the branch depending on the time
+
+```
+git diff --ignore-space-at-eol head~1 head~3
+```

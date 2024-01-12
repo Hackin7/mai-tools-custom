@@ -31,5 +31,8 @@ export function getMaiToolsBaseUrl(): string {
   if (window.location.pathname.startsWith('/mai-tools')) {
     return window.location.origin + '/mai-tools';
   }
+  if (window.location.pathname.startsWith('/build')) {
+    return window.location.origin + '/build';
+  }
   return window.location.origin;
 }

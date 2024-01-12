@@ -66,6 +66,10 @@ export class SongDatabase {
    * @return true if song prop is successfully updated.
    */
   updateSong(update: Partial<SongProperties>): boolean {
+    console.log(update);
+    if (!update){
+      return true;
+    }
     const map = update.dx === ChartType.DX ? this.dxMap : this.standardMap;
     const key = map.has(update.name) ? update.name : update.nickname;
     const existing = map.get(key);

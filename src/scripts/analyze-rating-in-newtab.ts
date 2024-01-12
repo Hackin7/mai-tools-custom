@@ -9,7 +9,7 @@ import {QueryParam} from '../common/query-params';
 import {statusText} from '../common/score-fetch-progress';
 import {getScriptHost} from '../common/script-host';
 import {SongDatabase} from '../common/song-props';
-import {ALLOWED_ORIGINS, fetchAllSongs, getPostMessageFunc, handleError} from '../common/util';
+import {fetchAllSongs, getPostMessageFunc, handleError} from '../common/util';
 
 declare global {
   interface Window {
@@ -136,8 +136,9 @@ declare global {
       evt: MessageEvent<string | {action: string; payload?: string | number}>
     ) => {
       console.log(evt.origin, evt.data);
-      if (ALLOWED_ORIGINS.includes(evt.origin)) {
-        const send = getPostMessageFunc(evt.source as WindowProxy, evt.origin);
+      if (true) { //ALLOWED_ORIGINS.includes(evt.origin)) {
+        //const send = getPostMessageFunc(evt.source as WindowProxy, evt.origin);
+        const send = getPostMessageFunc((document.getElementById('aaa') as HTMLIFrameElement).contentWindow as WindowProxy, evt.origin);
         if (typeof evt.data === 'object') {
           if (evt.data.action === 'ready') {
             send('gameVersion', await gameVerPromise);

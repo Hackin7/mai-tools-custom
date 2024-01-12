@@ -5,7 +5,7 @@ import {
   GameRegion,
   getGameRegionFromOrigin,
   getGameRegionFromShortString,
-  isMaimaiNetOrigin,
+  //isMaimaiNetOrigin,
   MAIMAI_NET_ORIGINS,
 } from '../../common/game-region';
 import {
@@ -187,6 +187,7 @@ export class RootComponent extends React.PureComponent<{}, State> {
   };
 
   private postMessageToOpener(data: {action: string; payload?: string | number}) {
+    alert("Post message to opener");
     if (window.opener) {
       if (this.referrer) {
         window.opener.postMessage(data, this.referrer);
@@ -198,13 +199,26 @@ export class RootComponent extends React.PureComponent<{}, State> {
         }
       }
     }
+    alert("Post message to parent");
+    if (window.parent) {  
+      if (this.referrer) {
+        window.parent.postMessage(data, this.referrer);
+      } else {
+        // Unfortunately, document.referrer is not set when mai-tools is run on localhost.
+        // Send message to all maimai net origins and pray that one of them will respond.
+        for (const origin of MAIMAI_NET_ORIGINS) {
+          window.parent.postMessage(data, origin);
+        }
+      }
+    }
+
   }
 
   private initWindowCommunication() {
     window.addEventListener('message', (evt) => {
-      if (!isMaimaiNetOrigin(evt.origin) && evt.origin !== window.origin) {
-        return;
-      }
+      //if (!isMaimaiNetOrigin(evt.origin) && evt.origin !== window.origin) {
+      //  return;
+      //}
       this.referrer = evt.origin;
       console.log(evt.origin, evt.data);
       if (typeof evt.data !== 'object') {
@@ -239,6 +253,8 @@ export class RootComponent extends React.PureComponent<{}, State> {
           break;
         case 'allSongs':
           this.setState({allSongs: evt.data.payload});
+          alert(JSON.stringify(evt.data.payload));
+          console.log(evt.data.payload);
           break;
       }
     });

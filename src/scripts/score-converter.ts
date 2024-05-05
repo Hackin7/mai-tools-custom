@@ -17,13 +17,13 @@ import {ALLOWED_ORIGINS} from '../common/util';
 (function (d) {
   const UIString = {
     [Language.en_US]: {
-      analyzeScore: '🔍 CLICK ME TO ANALYZE SCORE',
+      analyzeScore: 'Analyze Score ↗',
     },
     [Language.zh_TW]: {
-      analyzeScore: '🔍 點我分析分數',
+      analyzeScore: '️分析分數 ↗',
     },
     [Language.ko_KR]: {
-      analyzeScore: '🔍 정확도 분석하기',
+      analyzeScore: '정확도 분석하기 ↗',
     },
   }[getInitialLanguage()];
   const BASE_NEWTAB_URL = getScriptHost('score-converter') + '/classic-layout/';
@@ -55,10 +55,6 @@ import {ALLOWED_ORIGINS} from '../common/util';
     ['FSD+', '/maimai-mobile/img/music_icon_fsdp.png'],
   ]);
 
-  function trimSpaces(textLine: string) {
-    return textLine.trim().replace(/\s+/g, '-');
-  }
-
   function fetchAndCacheImg(map: Map<string, Blob | string>, title: string) {
     let img = map.get(title);
     if (img instanceof Blob) {
@@ -81,9 +77,10 @@ import {ALLOWED_ORIGINS} from '../common/util';
   function getNoteDetails(e: HTMLElement) {
     return (e.querySelector('.playlog_notes_detail') as HTMLElement).innerText
       .split('\n')
-      .slice(-5)
-      .map(trimSpaces)
-      .join('_');
+      .map((s) => s.trim())
+      .map((s) => s.replace(/\t/g, '-'))
+      .join('_')
+      .replace(/^_+|_+$/g, ''); // remove first & last underscores
   }
 
   function getTrack(e: HTMLElement) {
@@ -179,41 +176,22 @@ import {ALLOWED_ORIGINS} from '../common/util';
     return Promise.resolve(null);
   }
 
-  function createPlaceBlock() {
-    const placeNameBlock = d.createElement('div');
-    placeNameBlock.className = 'basic_block m_10 p_l_10 t_l f_14 break';
-    const placeNameSpan = d.createElement('span');
-    placeNameSpan.className = 'm_t_5 p_5 d_ib';
-    const clearfix = d.createElement('div');
-    clearfix.className = 'clearfix';
-
-    placeNameBlock.append(placeNameSpan, clearfix);
-    d.querySelector('.gray_block').insertAdjacentElement('afterend', placeNameBlock);
-    return placeNameBlock;
-  }
-
   function addLinkToPlace(link: string) {
-    let placeNameBlock = d.getElementById('placeName');
-    if (!placeNameBlock) {
-      placeNameBlock = createPlaceBlock();
-    }
-    const placeNameCtrl = d.getElementById('placeNameCtrl');
-    if (placeNameCtrl) {
-      placeNameCtrl.remove();
-    }
-    const placeNameSpan = placeNameBlock.querySelector('span');
-    if (placeNameSpan.parentElement instanceof HTMLAnchorElement) {
-      // Do nothing if this function is run more than once.
+    let ratingBlock = d.querySelector('.playlog_rating_detail_block');
+    if (!ratingBlock) {
       return;
     }
-    placeNameSpan.innerText = UIString.analyzeScore;
+    const existingLink = d.getElementById('openClassicLayout');
+    if (existingLink) {
+      existingLink.remove();
+    }
     const linkElem = d.createElement('a');
-    linkElem.href = link;
+    linkElem.id = 'openClassicLayout';
     linkElem.target = 'classic_layout';
-    linkElem.className = 'blue d_ib';
-    linkElem.style.height = '40px';
-    placeNameBlock.append(linkElem);
-    linkElem.append(placeNameSpan);
+    linkElem.className = 'blue d_ib f_12 m_10';
+    linkElem.href = link;
+    linkElem.append(UIString.analyzeScore);
+    ratingBlock.append(linkElem);
   }
 
   function addScoreConverterLink() {

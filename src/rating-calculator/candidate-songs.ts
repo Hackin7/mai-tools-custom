@@ -6,11 +6,10 @@ import {
   getRankIndexByAchievement,
   RANK_S,
   RANK_SSS_PLUS,
-  SSSPLUS_MIN_ACHIEVEMENT,
 } from '../common/rank-functions';
+import {calculateRatingRange} from '../common/rating-functions';
 import {getSongNicknameWithChartType} from '../common/song-name-helper';
 import {SongProperties} from '../common/song-props';
-import {calculateRatingRange} from './rating-functions';
 import {compareCandidate, compareSongsByLevel} from './record-comparator';
 import {ChartRecordWithRating} from './types';
 
@@ -56,7 +55,7 @@ export function getCandidateCharts(
   }
   for (let i = 0; i < topCount; i++) {
     const record = records[i];
-    if (record.achievement >= SSSPLUS_MIN_ACHIEVEMENT) continue;
+    if (record.achievement >= RANK_SSS_PLUS.minAchv) continue;
     if (requiredLv && (record.level < requiredLv.minLv || record.level > requiredLv.maxLv))
       continue;
     record.nextRanks = getNextRating(record, Math.floor(record.rating), 2);
@@ -65,7 +64,7 @@ export function getCandidateCharts(
   const minRating = Math.floor(records[topCount - 1].rating);
   for (let i = topCount; i < records.length; i++) {
     const record = records[i];
-    if (record.achievement >= SSSPLUS_MIN_ACHIEVEMENT) continue;
+    if (record.achievement >= RANK_SSS_PLUS.minAchv) continue;
     if (requiredLv && (record.level < requiredLv.minLv || record.level > requiredLv.maxLv))
       continue;
     const ratingByRank = getNextRating(record, minRating, 2);
@@ -104,11 +103,11 @@ export function getNotPlayedCharts(
   const hardestLv = requiredLv
     ? requiredLv.maxLv
     : maxRating
-    ? (maxRating * 100) / (RANK_S.factor * RANK_S.minAchv)
+    ? maxRating / (RANK_S.factor * RANK_S.minAchv)
     : 15;
   const easiestLv = requiredLv
     ? requiredLv.minLv
-    : (minRating * 100) / (RANK_SSS_PLUS.factor * RANK_SSS_PLUS.minAchv);
+    : minRating / (RANK_SSS_PLUS.factor * RANK_SSS_PLUS.minAchv);
   const candidates: ChartRecordWithRating[] = [];
   const shuffledSongList = shuffleArray(songList);
   for (const s of shuffledSongList) {

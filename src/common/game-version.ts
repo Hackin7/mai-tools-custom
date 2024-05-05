@@ -1,3 +1,11 @@
+/**
+ * Checklist when adding new game version:
+ *   - Remove deleted songs from plate info
+ *   - Add deleted songs to src/common/removed-songs.ts
+ *   - Update default version in src/plate-progress/RootComponent.tsx
+ *   - Update PLATE_PREFIX in src/scripts/build-plate-info.ts
+ */
+
 const VERSION_NAMES = [
   'maimai', // 0
   'maimai PLUS',
@@ -21,6 +29,7 @@ const VERSION_NAMES = [
   'FESTiVAL', // 19
   'FESTiVAL PLUS',
   'BUDDiES', // 21
+  'BUDDiES PLUS',
 ];
 
 export const enum GameVersion {
@@ -29,16 +38,18 @@ export const enum GameVersion {
   UNIVERSE_PLUS = 18,
   FESTiVAL = 19,
   FESTiVAL_PLUS = 20,
-  BUDDIES = 21,
+  BUDDiES = 21,
+  BUDDiES_PLUS = 22,
 }
 
-export const LATEST_VERSION = GameVersion.BUDDIES;
+export const LATEST_VERSION = GameVersion.BUDDiES_PLUS;
 
 export const RATING_CALCULATOR_SUPPORTED_VERSIONS = [
   GameVersion.UNIVERSE_PLUS,
   GameVersion.FESTiVAL,
   GameVersion.FESTiVAL_PLUS,
-  GameVersion.BUDDIES,
+  GameVersion.BUDDiES,
+  GameVersion.BUDDiES_PLUS,
 ];
 
 export function validateGameVersion(

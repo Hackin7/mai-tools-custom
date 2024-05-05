@@ -1,7 +1,8 @@
 import React, {useCallback, useMemo, useState} from 'react';
 
+import {GameVersion} from '../../common/game-version';
 import {useLanguage} from '../../common/lang-react';
-import {LevelDef} from '../../common/level-helper';
+import {getMaxMinorBeforePlus, getMinMinorOfPlus, LevelDef} from '../../common/level-helper';
 import {RANK_SSS_PLUS} from '../../common/rank-functions';
 import {SongDatabase, SongProperties} from '../../common/song-props';
 import {getCandidateCharts, getNotPlayedCharts} from '../candidate-songs';
@@ -73,6 +74,7 @@ export const CandidateChartRecords = ({
   // If we have no topCount (likely meaning the latest version has not been played), estimate
   // minRating by using 0.9 * lowest rating in old records.
   const levels = generateLevels(
+    songDatabase.gameVer,
     minRating ||
       (ratingData.oldTopChartsCount
         ? Math.floor(0.9 * ratingData.oldChartRecords[ratingData.oldTopChartsCount - 1].rating)
@@ -217,20 +219,22 @@ export const CandidateChartRecords = ({
   );
 };
 
-function generateLevels(minRating: number): LevelDef[] {
-  const easiestLv = (minRating * 100) / (RANK_SSS_PLUS.factor * RANK_SSS_PLUS.minAchv);
+function generateLevels(gameVer: GameVersion, minRating: number): LevelDef[] {
+  const easiestLv = minRating / (RANK_SSS_PLUS.factor * RANK_SSS_PLUS.minAchv);
   let baseLv = Math.floor(easiestLv);
-  const isPlus = easiestLv - baseLv > 0.6;
+  const maxMinorBeforePlus = getMaxMinorBeforePlus(gameVer);
+  const minMinorOfPlus = getMinMinorOfPlus(gameVer);
+  const isPlus = easiestLv - baseLv > maxMinorBeforePlus;
   const levels: LevelDef[] = [];
   if (easiestLv <= 14.9) {
     if (!isPlus) {
-      levels.push({title: String(baseLv), minLv: baseLv, maxLv: baseLv + 0.6});
+      levels.push({title: String(baseLv), minLv: baseLv, maxLv: baseLv + maxMinorBeforePlus});
     }
-    levels.push({title: baseLv + '+', minLv: baseLv + 0.7, maxLv: baseLv + 0.9});
+    levels.push({title: baseLv + '+', minLv: baseLv + minMinorOfPlus, maxLv: baseLv + 0.9});
     baseLv += 1;
     while (baseLv < 15) {
-      levels.push({title: String(baseLv), minLv: baseLv, maxLv: baseLv + 0.6});
-      levels.push({title: baseLv + '+', minLv: baseLv + 0.7, maxLv: baseLv + 0.9});
+      levels.push({title: String(baseLv), minLv: baseLv, maxLv: baseLv + maxMinorBeforePlus});
+      levels.push({title: baseLv + '+', minLv: baseLv + minMinorOfPlus, maxLv: baseLv + 0.9});
       baseLv += 1;
     }
   }

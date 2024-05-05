@@ -1,6 +1,7 @@
 import React from 'react';
 
 import {ChartRecord} from '../../common/chart-record';
+import {GameVersion} from '../../common/game-version';
 import {getOfficialLevel} from '../../common/level-helper';
 import {compareNumber} from '../../common/number-helper';
 import {getRankDistribution, getRankMap} from '../rank-distribution';
@@ -10,24 +11,25 @@ import {RankDistributionHeadRow} from './RankDistributionHeadRow';
 const LEVEL_RANK_CELL_BASE_CLASSNAME = 'levelRankCell';
 const LEVEL_RANK_CELL_CLASSNAMES = ['officialLevelCell'];
 
-function getRecordsPerLevel(records: ReadonlyArray<ChartRecord>) {
+function getRecordsPerLevel(gameVer: GameVersion, records: ReadonlyArray<ChartRecord>) {
   const levels = records.map((r) => r.level);
   levels.sort(compareNumber);
   levels.reverse();
   const recordsPerLevel = new Map<string, ChartRecord[]>();
   for (const lv of levels) {
-    const officialLv = getOfficialLevel(lv);
+    const officialLv = getOfficialLevel(gameVer, lv);
     if (!recordsPerLevel.has(officialLv)) {
       recordsPerLevel.set(officialLv, []);
     }
   }
   for (const r of records) {
-    recordsPerLevel.get(getOfficialLevel(r.level)).push(r);
+    recordsPerLevel.get(getOfficialLevel(gameVer, r.level)).push(r);
   }
   return recordsPerLevel;
 }
 
 interface Props {
+  gameVer: GameVersion;
   topLeftCell: string;
   chartRecords: ReadonlyArray<ChartRecord>;
   topChartsCount: number;
@@ -35,10 +37,10 @@ interface Props {
 
 export class LevelRankDistribution extends React.PureComponent<Props> {
   render() {
-    const {chartRecords, topLeftCell, topChartsCount} = this.props;
+    const {gameVer, chartRecords, topLeftCell, topChartsCount} = this.props;
     const topRecords = chartRecords.slice(0, topChartsCount);
     const rankMap = getRankMap(topRecords);
-    const recordsPerLevel = getRecordsPerLevel(topRecords);
+    const recordsPerLevel = getRecordsPerLevel(gameVer, topRecords);
     return (
       <table className="rankDistributionTable">
         <thead>

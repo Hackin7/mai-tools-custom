@@ -10,8 +10,14 @@ import {
 } from '../common/fetch-score-util';
 import {getMyDxScoreInfo, SELF_SCORE_URLS} from '../common/fetch-self-score';
 import {getGameRegionFromOrigin} from '../common/game-region';
+import {GameVersion} from '../common/game-version';
 import {getInitialLanguage, Language} from '../common/lang';
-import {getDefaultLevel, getDisplayLv} from '../common/level-helper';
+import {
+  compareLevels,
+  getDisplayLv,
+  getMinConstant,
+  getOfficialLevel,
+} from '../common/level-helper';
 import {fetchGameVersion, fetchPage} from '../common/net-helpers';
 import {getSongIdx, isNiconicoLink} from '../common/song-name-helper';
 import {loadSongDatabase, SongDatabase, SongProperties} from '../common/song-props';
@@ -56,8 +62,8 @@ type Cache = {
       [SortBy.RankDes]: 'Rank (high \u2192 low)',
       [SortBy.ApFcAsc]: 'AP/FC (FC \u2192 AP+)',
       [SortBy.ApFcDes]: 'AP/FC (AP+ \u2192 FC)',
-      [SortBy.SyncAsc]: 'Sync (FS \u2192 FSD+)',
-      [SortBy.SyncDes]: 'Sync (FSD+ \u2192 FS)',
+      [SortBy.SyncAsc]: 'Sync (SYNC PLAY \u2192 FSD+)',
+      [SortBy.SyncDes]: 'Sync (FSD+ \u2192 SYNC PLAY)',
       [SortBy.VsResultAsc]: 'VS Result (Lose \u2192 Win)',
       [SortBy.VsResultDes]: 'VS Result (Win \u2192 Lose)',
       [SortBy.LvAsc]: 'Level (low \u2192 high)',
@@ -73,8 +79,8 @@ type Cache = {
       [SortBy.RankDes]: '達成率 (由高至低)',
       [SortBy.ApFcAsc]: 'AP/FC (由 FC 到 AP+)',
       [SortBy.ApFcDes]: 'AP/FC (由 AP+ 到 FC)',
-      [SortBy.SyncAsc]: 'Sync (由 FS 到 FSD+)',
-      [SortBy.SyncDes]: 'Sync (由 FSD+ 到 FS)',
+      [SortBy.SyncAsc]: 'Sync (由 SYNC PLAY 到 FSD+)',
+      [SortBy.SyncDes]: 'Sync (由 FSD+ 到 SYNC PLAY)',
       [SortBy.VsResultAsc]: '對戰結果 (由敗北到勝利)',
       [SortBy.VsResultDes]: '對戰結果 (由勝利到敗北)',
       [SortBy.LvAsc]: '譜面等級 (由低至高)',
@@ -90,8 +96,8 @@ type Cache = {
       [SortBy.RankDes]: '정확도 내림차순 (높음 \u2192 낮음)',
       [SortBy.ApFcAsc]: 'AP/FC 오름차순 (FC \u2192 AP+)',
       [SortBy.ApFcDes]: 'AP/FC 내림차순 (AP+ \u2192 FC)',
-      [SortBy.SyncAsc]: 'Sync 오름차순 (FS \u2192 FSD+)',
-      [SortBy.SyncDes]: 'Sync 내림차순 (FSD+ \u2192 FS)',
+      [SortBy.SyncAsc]: 'Sync 오름차순 (SYNC PLAY \u2192 FSD+)',
+      [SortBy.SyncDes]: 'Sync 내림차순 (FSD+ \u2192 SYNC PLAY)',
       [SortBy.VsResultAsc]: 'VS 결과 오름차순 (Lose \u2192 Win)',
       [SortBy.VsResultDes]: 'VS 결과 내림차순 (Win \u2192 Lose)',
       [SortBy.LvAsc]: '난이도 오름차순 (낮음 \u2192 높음)',
@@ -145,7 +151,7 @@ type Cache = {
     null,
   ];
   const AP_FC_TYPES = ['AP+', 'AP', 'FC+', 'FC', null];
-  const SYNC_TYPES = ['FSD+', 'FSD', 'FS+', 'FS', null];
+  const SYNC_TYPES = ['FSD+', 'FSD', 'FS+', 'FS', 'SYNC', null];
   const VS_RESULTS = ['WIN', 'DRAW', 'LOSE'];
   const DX_STARS = [
     null,
@@ -157,7 +163,6 @@ type Cache = {
     '✦6 - 99%',
     '✦7 - 100%',
   ];
-  const LV_DELTA = 0.02;
   const isFriendScore = location.pathname.includes('battleStart');
   const isDxScoreVs = location.search.includes('scoreType=1');
   const isUtage = location.search.includes('diff=10');
@@ -172,23 +177,12 @@ type Cache = {
     );
   }
 
-  /**
-   * @returns if lv is estimate, 1 or 0.7. if lv is accurate, 0.
-   */
-  function isEstimateLv(lv: number) {
-    const majorLv = Math.floor(lv);
-    const minorLv = lv - majorLv;
-    return minorLv > 0.95 ? 1 : minorLv > 0.65 && minorLv < 0.69 ? 0.7 : 0;
-  }
-
-  function getInLvSecTitle(lv: number) {
-    const isEstimate = isEstimateLv(lv);
-    if (!isEstimate) {
+  function getInLvSecTitle(gameVer: GameVersion, lv: number) {
+    const isPrecise = lv > 0;
+    if (isPrecise) {
       return 'INTERNAL LEVEL ' + lv.toFixed(1);
-    } else if (isEstimate < 1) {
-      return 'UNKNOWN LEVEL ' + Math.floor(lv) + '+';
     }
-    return 'UNKNOWN LEVEL ' + lv.toFixed(0);
+    return 'UNKNOWN LEVEL ' + getOfficialLevel(gameVer, Math.abs(lv));
   }
 
   function createMap(sections: (string | null)[], reverse: boolean) {
@@ -211,7 +205,7 @@ type Cache = {
     size: number,
     totalSize: number
   ) {
-    let title = style === SectionHeadStyle.DxStar ? '' : '\u25D6';
+    let title = style === SectionHeadStyle.DxStar ? '' : '《';
     switch (style) {
       case SectionHeadStyle.Level:
         title += 'LEVEL ' + section;
@@ -224,7 +218,7 @@ type Cache = {
         break;
     }
     if (style !== SectionHeadStyle.DxStar) {
-      title += '\u25D7';
+      title += '》';
     }
     return title + '\u3000\u3000\u3000' + size + '/' + totalSize;
   }
@@ -263,9 +257,8 @@ type Cache = {
   function saveInLv(row: HTMLElement, lv: number) {
     const elem = getChartLvElem(row);
     if (!elem.dataset['inlv']) {
-      const isEstimate = isEstimateLv(lv);
-      elem.dataset['inlv'] = lv.toFixed(2);
-      const t = getDisplayLv(lv, isEstimate !== 0);
+      elem.dataset['inlv'] = lv.toFixed(1);
+      const t = getDisplayLv(lv);
       if (t.length > 4) {
         elem.classList.remove('f_14');
         elem.classList.add('f_13');
@@ -274,18 +267,14 @@ type Cache = {
     }
   }
 
-  function coalesceInLv(row: HTMLElement, lvIndex: number, props?: SongProperties | null) {
-    let lv = 0;
-    if (props) {
-      lv = props.lv[lvIndex];
-      if (typeof lv !== 'number') {
-        lv = 0;
-      } else if (lv < 0) {
-        // console.warn("lv is negative for song " + song, props);
-        lv = Math.abs(lv) - LV_DELTA;
-      }
-    }
-    return lv || getDefaultLevel(getChartLv(row)) - LV_DELTA;
+  function coalesceInLv(
+    gameVer: GameVersion,
+    row: HTMLElement,
+    lvIndex: number,
+    props?: SongProperties | null
+  ) {
+    const lv = props ? props.lv[lvIndex] : 0;
+    return lv || -getMinConstant(gameVer, getChartLv(row));
   }
 
   function getChartInLv(row: HTMLElement, songDb: SongDatabase) {
@@ -308,13 +297,13 @@ type Cache = {
     } else {
       props = songDb.getSongProperties(name, '', t);
     }
-    return coalesceInLv(row, lvIndex, props);
+    return coalesceInLv(songDb.gameVer, row, lvIndex, props);
   }
 
   function compareInLv(row1: HTMLElement, row2: HTMLElement) {
     const lv1 = getChartInLv(row1, cache.songDb!);
     const lv2 = getChartInLv(row2, cache.songDb!);
-    return lv1 < lv2 ? -1 : lv2 < lv1 ? 1 : 0;
+    return compareLevels(lv1, lv2);
   }
 
   function sortRowsByLevel(rows: NodeListOf<HTMLElement>, reverse: boolean) {
@@ -439,7 +428,8 @@ type Cache = {
     if (row.dataset.dxStar) {
       return row.dataset.dxStar === 'null' ? null : row.dataset.dxStar;
     }
-    const dxStar = DX_STARS[getMyDxScoreInfo(row).star];
+    const dxScoreInfo = getMyDxScoreInfo(row);
+    const dxStar = dxScoreInfo ? DX_STARS[dxScoreInfo.star] : null;
     row.dataset.dxStar = dxStar;
     return dxStar;
   }
@@ -453,26 +443,24 @@ type Cache = {
     return createRowsWithSection(map, SectionHeadStyle.DxStar, rows.length);
   }
 
-  function sortRowsByInLv(rows: NodeListOf<HTMLElement>, reverse: boolean) {
-    const inLvSet = new Map<number, boolean>();
+  function sortRowsByInLv(gameVer: GameVersion, rows: NodeListOf<HTMLElement>, reverse: boolean) {
+    const inLvSet = new Set<number>();
     const inLvs: number[] = [];
     for (const row of Array.from(rows)) {
       const lv = getChartInLv(row, cache.songDb!);
-      inLvSet.set(lv, true);
+      inLvSet.add(lv);
       inLvs.push(lv);
     }
-    const sortedInLv = Array.from(inLvSet.keys()).sort((lv1, lv2) => {
-      return lv1 > lv2 ? -1 : lv1 < lv2 ? 1 : 0;
-    });
+    const sortedInLv = Array.from(inLvSet.keys()).sort(compareLevels);
     if (reverse) {
       sortedInLv.reverse();
     }
     const map = new Map<string, HTMLElement[]>();
     sortedInLv.forEach((lv) => {
-      map.set(getInLvSecTitle(lv), []);
+      map.set(getInLvSecTitle(gameVer, lv), []);
     });
     Array.from(rows).forEach((row, index) => {
-      map.get(getInLvSecTitle(inLvs[index])).push(row);
+      map.get(getInLvSecTitle(gameVer, inLvs[index])).push(row);
     });
     return createRowsWithSection(map, SectionHeadStyle.Default, rows.length);
   }
@@ -519,10 +507,10 @@ type Cache = {
         sortedRows = sortRowsByLevel(rows, false);
         break;
       case SortBy.InLvDes:
-        sortedRows = sortRowsByInLv(rows, false);
+        sortedRows = sortRowsByInLv(cache.songDb!!.gameVer, rows, true);
         break;
       case SortBy.InLvAsc:
-        sortedRows = sortRowsByInLv(rows, true);
+        sortedRows = sortRowsByInLv(cache.songDb!!.gameVer, rows, false);
         break;
       case SortBy.DxStarAsc:
         sortedRows = sortRowsByDxStar(rows, false);
@@ -586,11 +574,11 @@ type Cache = {
         apfcCount[x] = 0;
       }
       rows.forEach((row) => {
-        apfcCount[getApFcStatus(row)]++;
+        apfcCount[getApFcStatus(row, true)]++;
       });
 
       // 4 is the index of null
-      for (let i = 1; i < 4; i++) {
+      for (let i = 1; i < AP_FC_TYPES.length - 1; i++) {
         apfcCount[AP_FC_TYPES[i]] += apfcCount[AP_FC_TYPES[i - 1]];
       }
 
@@ -607,19 +595,20 @@ type Cache = {
         syncCount[x] = 0;
       }
       rows.forEach((row) => {
-        syncCount[getSyncStatus(row)]++;
+        syncCount[getSyncStatus(row, true)]++;
       });
 
       // 4 is the index of null
-      for (let i = 1; i < 4; i++) {
+      for (let i = 1; i < SYNC_TYPES.length - 1; i++) {
         syncCount[SYNC_TYPES[i]] += syncCount[SYNC_TYPES[i - 1]];
       }
 
-      const columns = summaryTable.querySelectorAll('tr:nth-child(2) .f_10');
-      columns[4].innerHTML = `${syncCount['FS']}/${total}`;
-      columns[5].innerHTML = `${syncCount['FS+']}/${total}`;
-      columns[6].innerHTML = `${syncCount['FSD']}/${total}`;
-      columns[7].innerHTML = `${syncCount['FSD+']}/${total}`;
+      const columns = summaryTable.querySelectorAll('tr:nth-child(3) .f_10');
+      columns[0].innerHTML = `${syncCount['SYNC']}/${total}`;
+      columns[1].innerHTML = `${syncCount['FS']}/${total}`;
+      columns[2].innerHTML = `${syncCount['FS+']}/${total}`;
+      columns[3].innerHTML = `${syncCount['FSD']}/${total}`;
+      columns[4].innerHTML = `${syncCount['FSD+']}/${total}`;
     }
 
     function updateDxStarSummary() {
@@ -749,9 +738,9 @@ type Cache = {
             cache.originalLinkIdx = idx;
             props = songDb.getSongProperties(name, '', ChartType.STANDARD);
           }
-          saveInLv(row, coalesceInLv(row, lvIndex, props));
+          saveInLv(row, coalesceInLv(gameVer, row, lvIndex, props));
         } catch (e) {
-          saveInLv(row, coalesceInLv(row, lvIndex));
+          saveInLv(row, coalesceInLv(gameVer, row, lvIndex));
         }
       } else {
         const lv = getChartInLv(row, songDb);

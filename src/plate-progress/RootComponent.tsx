@@ -39,13 +39,13 @@ export class RootComponent extends React.PureComponent<{}, State> {
     this.state = {
       lang,
       region,
-      version: GameVersion.FESTiVAL.toString(),
+      version: GameVersion.FESTiVAL_PLUS.toString(),
       friendIdx,
       playerName,
       progress: '',
       playerScores: [],
     };
-    if (window.opener || window.parent) {
+    if (window.opener) {
       this.initWindowCommunication();
     }
   }
@@ -91,6 +91,8 @@ export class RootComponent extends React.PureComponent<{}, State> {
         }
       }
     }
+
+    // NEW CODE /////////////////////////////////////////////////////
     if (window.parent) {  
       if (this.referrer) {
         window.parent.postMessage(data, this.referrer);
@@ -102,11 +104,12 @@ export class RootComponent extends React.PureComponent<{}, State> {
         }
       }
     }
+    // NEW CODE /////////////////////////////////////////////////////
   }
 
   private initWindowCommunication = () => {
     window.addEventListener('message', (evt) => {
-      if (true) { // isMaimaiNetOrigin(evt.origin)) {
+      if (true){ //isMaimaiNetOrigin(evt.origin)) {
         this.referrer = evt.origin;
         console.log(evt.origin, evt.data);
         switch (evt.data.action) {

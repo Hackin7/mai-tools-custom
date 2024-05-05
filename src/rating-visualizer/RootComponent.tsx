@@ -1,12 +1,12 @@
 import React from 'react';
 
 import {LangSwitcher} from '../common/components/LangSwitcher';
+import {GameVersion} from '../common/game-version';
 import {getInitialLanguage, Language} from '../common/lang';
 import {LangContext} from '../common/lang-react';
-import {LevelDef} from '../common/level-helper';
+import {getMaxConstant, getMinConstant, getOfficialLevel, LevelDef} from '../common/level-helper';
 import {getRankDefinitions} from '../common/rank-functions';
 import {loadUserPreference, saveUserPreference, UserPreference} from '../common/user-preference';
-import {DX_LEVELS, getLvIndex} from './levels';
 import {MultiplierTable} from './MultiplierTable';
 import {OptionsInput} from './OptionsInput';
 import {DisplayValue, RatingTable} from './RatingTable';
@@ -67,8 +67,8 @@ export class RootComponent extends React.PureComponent<{}, State> {
       tableDisplay,
       topPadding,
     } = this.state;
-    const canZoomIn = maxLv !== minLv;
     const levels = this.getLevels();
+    const canZoomIn = levels[0].minLv + 1 < levels[levels.length - 1].maxLv;
     const allRanks = getRankDefinitions();
     const ranksEndIndex = allRanks.findIndex((rank) => rank.title == minRank);
     const ranks = allRanks.slice(0, ranksEndIndex + 1);
@@ -94,7 +94,7 @@ export class RootComponent extends React.PureComponent<{}, State> {
             topPadding={topPadding}
             axisLabelStep={axisLabelStep}
             ranks={ranks}
-            handleSetRange={this.handleSetRange}
+            onSetRange={this.handleSetRange}
           />
           <div className="container">
             <RatingTable ranks={ranks} levels={levels} displayValue={tableDisplay} />
@@ -117,29 +117,31 @@ export class RootComponent extends React.PureComponent<{}, State> {
     );
   }
 
-  private getDetailLevels(startIdx: number, endIdx: number): LevelDef[] {
+  private getLevels(): LevelDef[] {
+    const {minLv, maxLv} = this.state;
+    // TODO: Take input from option or query params
+    const startLv = getMinConstant(GameVersion.BUDDiES, minLv);
+    const endLv = getMaxConstant(GameVersion.BUDDiES, maxLv);
     const lvs = [];
-    const maxLv = DX_LEVELS[endIdx].maxLv;
-    let currentLv = DX_LEVELS[startIdx].minLv;
-    while (currentLv <= maxLv) {
+    let currentLv = startLv;
+    const showEachConstant = endLv - startLv < 1;
+    while (currentLv <= endLv) {
+      // TODO: support BUDDiES PLUS
+      const nextLv = showEachConstant
+        ? currentLv + 0.1
+        : Math.round(currentLv) === currentLv
+        ? currentLv + 0.7
+        : currentLv + 0.3;
       lvs.push({
-        title: currentLv.toFixed(1),
+        title: showEachConstant
+          ? currentLv.toFixed(1)
+          : getOfficialLevel(GameVersion.BUDDiES, currentLv),
         minLv: currentLv,
-        maxLv: currentLv,
+        maxLv: nextLv - 0.1,
       });
-      currentLv += 0.1;
+      currentLv = nextLv;
     }
     return lvs;
-  }
-
-  private getLevels() {
-    const {minLv, maxLv} = this.state;
-    const startIdx = getLvIndex(minLv);
-    const endIdx = getLvIndex(maxLv);
-    if (endIdx - startIdx < 2) {
-      return this.getDetailLevels(startIdx, endIdx);
-    }
-    return DX_LEVELS.slice(startIdx, endIdx + 1);
   }
 
   private handleChangeHeightUnit = (unit: number) => {
@@ -148,13 +150,12 @@ export class RootComponent extends React.PureComponent<{}, State> {
   };
 
   private handleSetRange = (minLv: string, maxLv: string) => {
-    const maxLvDef = DX_LEVELS.find((lv) => lv.title === maxLv);
     saveUserPreference(UserPreference.MinLv, minLv);
     saveUserPreference(UserPreference.MaxLv, maxLv);
     this.setState({
       minLv,
       maxLv,
-      maxRating: calculateMaxRating(maxLvDef.maxLv),
+      maxRating: calculateMaxRating(parseFloat(maxLv)),
     });
   };
 
@@ -171,7 +172,7 @@ export class RootComponent extends React.PureComponent<{}, State> {
 
 function calculateMaxRating(maxLv: number) {
   const maxRank = getRankDefinitions()[0];
-  return Math.floor((maxRank.minAchv * maxRank.factor * maxLv) / 100);
+  return Math.floor(maxRank.minAchv * maxRank.factor * maxLv);
 }
 
 function updateDocumentTitle(lang: Language) {

@@ -37,11 +37,14 @@ export class RatingTable extends React.PureComponent<Props> {
                     <th>{lv.title}</th>
                     {ranks.map((r, idx) => {
                       const maxAchv = idx === 0 ? r.minAchv : ranks[idx - 1].minAchv - 0.0001;
-                      const minRating = Math.floor(lv.minLv * r.minAchv * r.factor * 0.01);
+                      const minRating = Math.floor(lv.minLv * r.minAchv * r.factor);
                       if (displayValue === DisplayValue.MIN) {
                         return <td key={idx}>{minRating}</td>;
                       }
-                      const maxRating = Math.floor(lv.maxLv * maxAchv * r.factor * 0.01);
+                      const maxRating =
+                        r.maxAchv && r.maxFactor
+                          ? Math.floor(lv.maxLv * r.maxAchv * r.maxFactor)
+                          : Math.floor(lv.maxLv * maxAchv * r.factor);
                       if (displayValue === DisplayValue.MAX) {
                         return <td key={idx}>{maxRating}</td>;
                       }

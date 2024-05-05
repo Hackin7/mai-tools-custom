@@ -3,9 +3,10 @@ import React from 'react';
 interface LvRankRatingSegmentProps {
   minAchv: number;
   minLv: number;
-  rankFactor: number;
+  minFactor: number;
   maxAchv: number;
   maxLv: number;
+  maxFactor: number;
   heightUnit: number;
   title: string;
   highlightInterval: (min: number, max: number) => void;
@@ -16,14 +17,14 @@ export class LvRankRatingSegment extends React.PureComponent<LvRankRatingSegment
   private maxRt = 0;
 
   render() {
-    const {minLv, minAchv, rankFactor, maxLv, maxAchv, heightUnit, title} = this.props;
-    this.minRt = Math.floor((minLv * minAchv * rankFactor) / 100);
-    this.maxRt = Math.floor((maxLv * maxAchv * rankFactor) / 100);
+    const {minLv, minAchv, minFactor, maxLv, maxAchv, maxFactor, heightUnit, title} = this.props;
+    this.minRt = Math.floor(minLv * minAchv * minFactor);
+    this.maxRt = Math.floor(maxLv * maxAchv * maxFactor);
     const style = {
-      bottom: (this.minRt - 0.5) * heightUnit + "px",
-      height: (this.maxRt - this.minRt + 1) * heightUnit + "px",
+      bottom: (this.minRt - 0.5) * heightUnit + 'px',
+      height: (this.maxRt - this.minRt + 1) * heightUnit + 'px',
     };
-    const className = "ratingSegment " + "segment" + title.replace("+", "P");
+    const className = 'ratingSegment ' + 'segment' + title.replace('+', 'P');
     return (
       <div
         className={className}

@@ -324,27 +324,25 @@ type Options = {
         return options.dates.has(formatDate(r.date).split(' ')[0]);
       });
     }
-    if (!options.showAll) {
-      records.reverse(); // oldest -> newest. This is necessary for newer new records to overwrite older ones.
-      const nameRecordMap = new Map();
-      records.forEach((r) => {
-        if (r.isNewRecord) {
-          const mapKey = r.difficulty + ' ' + r.songName;
-          nameRecordMap.delete(mapKey);
-          nameRecordMap.set(mapKey, r);
-        }
-      });
-      records = [];
-      nameRecordMap.forEach((r) => {
-        records.push(r);
-      });
-      if (!options.olderFirst) {
-        records.reverse(); // newest -> oldest
-      }
-    } else if (options.olderFirst) {
-      records.reverse(); // oldest -> newest
+    if (options.showAll) {
+      return options.olderFirst ? records.reverse() : records;
     }
-    return records;
+
+    // Keep the best record for each song + chart type + difficulty
+    records.reverse(); // oldest -> newest, so newer records can overwrite older ones.
+    const nameRecordMap = new Map();
+    records.forEach((r) => {
+      if (r.isNewRecord) {
+        const mapKey = r.songName + '\t' + r.chartType + '\t' + r.difficulty;
+        nameRecordMap.delete(mapKey);
+        nameRecordMap.set(mapKey, r);
+      }
+    });
+    records = [];
+    nameRecordMap.forEach((r) => {
+      records.push(r);
+    });
+    return options.olderFirst ? records : records.reverse();
   }
 
   function createDateOptions(playDates: Set<string>, onChange: (evt: Event) => void) {

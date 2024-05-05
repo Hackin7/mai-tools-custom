@@ -17,7 +17,7 @@ interface Props {
 export class RecommendedLevelRow extends React.PureComponent<Props> {
   render() {
     const {gameRegion, gameVer, rankTitle, recLv, includeOldVersions} = this.props;
-    const officialLv = getOfficialLevel(recLv.lv);
+    const officialLv = getOfficialLevel(gameVer, recLv.lv);
     const internalLv = recLv.lv.toFixed(1);
     const minGameVer = includeOldVersions ? 0 : gameVer;
     return (

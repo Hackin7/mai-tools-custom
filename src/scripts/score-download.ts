@@ -4,7 +4,7 @@ import {DIFFICULTIES, getDifficultyName} from '../common/difficulties';
 import {fetchFriendScoresFull} from '../common/fetch-friend-score';
 import {fetchScoresFull} from '../common/fetch-self-score';
 import {getGameRegionFromOrigin, isMaimaiNetOrigin} from '../common/game-region';
-import {getVersionName} from '../common/game-version';
+import {GameVersion, getVersionName} from '../common/game-version';
 import {getInitialLanguage, Language} from '../common/lang';
 import {getOfficialLevel} from '../common/level-helper';
 import {fetchGameVersion} from '../common/net-helpers';
@@ -126,13 +126,13 @@ import {loadSongDatabase} from '../common/song-props';
     [Field.DxRatio]: 'DX %',
   };
 
-  const FIELD_GETTER: Record<Field, (r: FullChartRecord) => string> = {
+  const FIELD_GETTER: Record<Field, (r: FullChartRecord, v: GameVersion) => string> = {
     [Field.SongName]: (r) => r.songName,
     [Field.Genre]: (r) => r.genre,
     [Field.Version]: (r) => (r.version < 0 ? '?' : getVersionName(r.version)),
     [Field.ChartType]: (r) => getChartTypeName(r.chartType),
     [Field.Difficulty]: (r) => getDifficultyName(r.difficulty),
-    [Field.Level]: (r) => getOfficialLevel(Math.abs(r.level)),
+    [Field.Level]: (r, v) => getOfficialLevel(v, Math.abs(r.level)),
     [Field.InternalLevel]: (r) => (r.level > 0 ? r.level.toFixed(1) : '?'),
     [Field.Achievement]: (r) => r.achievement.toFixed(4) + '%',
     [Field.Rank]: (r) => getRankByAchievement(r.achievement).title,
@@ -177,13 +177,6 @@ import {loadSongDatabase} from '../common/song-props';
     div.style.marginBottom = '16px';
     cache.div = div;
 
-    const fetchBtn = d.createElement('button');
-    fetchBtn.className = 'm_r_5';
-    fetchBtn.style.color = '#1477e6';
-    fetchBtn.append(UIString.fetch);
-    fetchBtn.addEventListener('click', handleStartDownload);
-    div.append(fetchBtn);
-
     const included = d.createElement('div');
     included.className = 'included p_10 m_10';
     included.append(UIString.include);
@@ -206,11 +199,11 @@ import {loadSongDatabase} from '../common/song-props';
     }
     div.append(excluded);
 
-    const tx = d.createElement('textarea');
-    tx.className = 'f_12';
-    tx.id = 'outputText';
-    tx.style.whiteSpace = 'pre';
-    div.append(tx);
+    const fetchBtn = d.createElement('button');
+    fetchBtn.className = 'm_r_5';
+    fetchBtn.innerText = UIString.fetch;
+    fetchBtn.addEventListener('click', handleStartDownload);
+    div.append(fetchBtn);
 
     const copyBtn = d.createElement('button');
     copyBtn.innerText = UIString.copy;
@@ -223,6 +216,12 @@ import {loadSongDatabase} from '../common/song-props';
       btn.style.padding = '8px 12px';
     }
     div.append(copyBtn);
+
+    const tx = d.createElement('textarea');
+    tx.className = 'f_12';
+    tx.id = 'outputText';
+    tx.style.whiteSpace = 'pre';
+    div.append(tx);
 
     copyBtn.addEventListener('click', () => {
       tx.select();
@@ -261,8 +260,8 @@ import {loadSongDatabase} from '../common/song-props';
     return fields.map((f) => ALL_FIELD_NAME[f]).join('\t');
   }
 
-  function formatRecord(r: FullChartRecord, fields: Field[]): string {
-    return fields.map((f) => FIELD_GETTER[f](r)).join('\t');
+  function formatRecord(gameVer: GameVersion, r: FullChartRecord, fields: Field[]): string {
+    return fields.map((f) => FIELD_GETTER[f](r, gameVer)).join('\t');
   }
 
   async function handleStartDownload(evt: Event) {
@@ -294,7 +293,7 @@ import {loadSongDatabase} from '../common/song-props';
     textarea.value =
       getTableHead(fields) +
       '\n' +
-      cache.scores.map((record) => formatRecord(record, fields)).join('\n');
+      cache.scores.map((record) => formatRecord(gameVer, record, fields)).join('\n');
     (document.querySelector('.fetchStatus') as HTMLElement).innerText = UIString.allDone;
   }
 

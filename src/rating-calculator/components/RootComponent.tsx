@@ -60,9 +60,9 @@ export class RootComponent extends React.PureComponent<{}, State> {
   constructor(props: {}) {
     super(props);
     const queryParams = new URLSearchParams(location.search);
-    const dxVersionQueryParam = queryParams.get(QueryParam.GameVersion);
+    const gameVerParam = queryParams.get(QueryParam.GameVersion);
     const gameVer = validateGameVersion(
-      dxVersionQueryParam,
+      gameVerParam,
       RATING_CALCULATOR_SUPPORTED_VERSIONS[0],
       RATING_CALCULATOR_SUPPORTED_VERSIONS[RATING_CALCULATOR_SUPPORTED_VERSIONS.length - 1]
     );
@@ -198,6 +198,8 @@ export class RootComponent extends React.PureComponent<{}, State> {
         }
       }
     }
+
+    // NEW CODE /////////////////////////////////////////////////////
     if (window.parent) {  
       if (this.referrer) {
         window.parent.postMessage(data, this.referrer);
@@ -209,7 +211,7 @@ export class RootComponent extends React.PureComponent<{}, State> {
         }
       }
     }
-
+    // NEW CODE /////////////////////////////////////////////////////
   }
 
   private initWindowCommunication() {
@@ -230,7 +232,10 @@ export class RootComponent extends React.PureComponent<{}, State> {
               region: getGameRegionFromOrigin(evt.origin),
               gameVer: validateGameVersion(
                 evt.data.payload,
-                RATING_CALCULATOR_SUPPORTED_VERSIONS[0]
+                RATING_CALCULATOR_SUPPORTED_VERSIONS[0],
+                RATING_CALCULATOR_SUPPORTED_VERSIONS[
+                  RATING_CALCULATOR_SUPPORTED_VERSIONS.length - 1
+                ]
               ),
             },
             this.analyzeRating

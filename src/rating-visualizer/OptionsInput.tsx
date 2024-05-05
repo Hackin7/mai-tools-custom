@@ -1,7 +1,20 @@
 import React from 'react';
 
-import {DX_LEVELS, getLvIndex} from './levels';
-import { DisplayValue } from './RatingTable';
+import {DisplayValue} from './RatingTable';
+
+export const LEVELS: ReadonlyArray<string> = [
+  '15',
+  '14+',
+  '14',
+  '13+',
+  '13',
+  '12+',
+  '12',
+  '11+',
+  '11',
+  '10+',
+  '10',
+];
 
 interface OptionsInputProps {
   heightUnit: number;
@@ -71,11 +84,11 @@ export class OptionsInput extends React.PureComponent<OptionsInputProps> {
 
   private renderLvOptions() {
     const options: JSX.Element[] = [];
-    for (let i = DX_LEVELS.length - 1; i >= 0; i--) {
-      const lv = DX_LEVELS[i];
+    for (let i = 0; i <= LEVELS.length; i++) {
+      const lv = LEVELS[i];
       options.push(
-        <option key={i} value={lv.title}>
-          {lv.title}
+        <option key={i} value={lv}>
+          {lv}
         </option>
       );
     }
@@ -84,29 +97,28 @@ export class OptionsInput extends React.PureComponent<OptionsInputProps> {
 
   private handleChangeMinLv = (evt: React.SyntheticEvent<HTMLSelectElement>) => {
     const minLv = evt.currentTarget.value;
-    const minLvIdx = getLvIndex(minLv);
-    const maxLvIdx = getLvIndex(this.props.maxLv);
-    this.props.onSetRange(minLv, DX_LEVELS[Math.max(minLvIdx, maxLvIdx)].title);
+    const minLvIdx = LEVELS.indexOf(minLv);
+    const maxLvIdx = LEVELS.indexOf(this.props.maxLv);
+    this.props.onSetRange(minLv, LEVELS[Math.min(minLvIdx, maxLvIdx)]);
   };
 
   private handleChangeMaxLv = (evt: React.SyntheticEvent<HTMLSelectElement>) => {
     const maxLv = evt.currentTarget.value;
-    const minLvIdx = getLvIndex(this.props.minLv);
-    const maxLvIdx = getLvIndex(maxLv);
-    this.props.onSetRange(DX_LEVELS[Math.min(minLvIdx, maxLvIdx)].title, maxLv);
+    const minLvIdx = LEVELS.indexOf(this.props.minLv);
+    const maxLvIdx = LEVELS.indexOf(maxLv);
+    this.props.onSetRange(LEVELS[Math.max(minLvIdx, maxLvIdx)], maxLv);
   };
 
   private handleChangeHeightUnit = (evt: React.SyntheticEvent<HTMLSelectElement>) => {
-    console.log(evt.target);
     const unit = parseInt(evt.currentTarget.value);
     this.props.onChangeUnit(unit);
   };
 
   private handleChangeMinRank = (evt: React.SyntheticEvent<HTMLSelectElement>) => {
     this.props.onSetMinRank(evt.currentTarget.value);
-  }
+  };
 
   private handleChangeTableDisplay = (evt: React.SyntheticEvent<HTMLSelectElement>) => {
     this.props.onSetTableDisplay(evt.currentTarget.value as DisplayValue);
-  }
+  };
 }

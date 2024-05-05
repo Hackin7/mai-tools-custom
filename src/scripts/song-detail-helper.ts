@@ -1,7 +1,8 @@
 import {getChartType} from '../common/chart-type';
 import {determineDxStar, getDxStarText} from '../common/dx-star';
 import {getGameRegionFromOrigin} from '../common/game-region';
-import {getDefaultLevel, getDisplayLv} from '../common/level-helper';
+import {GameVersion} from '../common/game-version';
+import {getDisplayLv, getMinConstant} from '../common/level-helper';
 import {fetchGameVersion} from '../common/net-helpers';
 import {normalizeSongName} from '../common/song-name-helper';
 import {loadSongDatabase, SongProperties} from '../common/song-props';
@@ -12,7 +13,6 @@ type Cache = {
 
 (function (d) {
   const cache: Cache = {};
-  const LV_DELTA = 0.02;
 
   function addDxStarDetail(row: HTMLElement) {
     const label = row.querySelector('img.f_l');
@@ -52,7 +52,7 @@ type Cache = {
       if (!levelElement) {
         return;
       }
-      saveInLv(levelElement, coalesceInLv(levelElement, idx, props));
+      saveInLv(levelElement, coalesceInLv(gameVer, levelElement, idx, props));
     });
 
     // replace play history's level
@@ -62,36 +62,25 @@ type Cache = {
         return;
       }
       const levelElement = getLevelElement(row as HTMLElement);
-      saveInLv(levelElement, coalesceInLv(levelElement, idx, props));
+      saveInLv(levelElement, coalesceInLv(gameVer, levelElement, idx, props));
     });
   }
 
   function saveInLv(levelElement: HTMLElement, lv: number) {
     if (!levelElement.dataset['inlv']) {
-      const isEstimate = isEstimateLv(lv);
-      levelElement.dataset['inlv'] = lv.toFixed(2);
-      levelElement.innerText = getDisplayLv(lv, isEstimate !== 0);
+      levelElement.dataset['inlv'] = lv.toFixed(1);
+      levelElement.innerText = getDisplayLv(lv);
     }
   }
 
-  function isEstimateLv(lv: number) {
-    const majorLv = Math.floor(lv);
-    const minorLv = lv - majorLv;
-    return minorLv > 0.95 ? 1 : minorLv > 0.65 && minorLv < 0.69 ? 0.7 : 0;
-  }
-
-  function coalesceInLv(levelElement: HTMLElement, lvIndex: number, props?: SongProperties | null) {
-    let lv = 0;
-    if (props) {
-      lv = props.lv[lvIndex];
-      if (typeof lv !== 'number') {
-        lv = 0;
-      } else if (lv < 0) {
-        // console.warn("lv is negative for song " + song, props);
-        lv = Math.abs(lv) - LV_DELTA;
-      }
-    }
-    return lv || getDefaultLevel(getChartLv(levelElement)) - LV_DELTA;
+  function coalesceInLv(
+    gameVer: GameVersion,
+    levelElement: HTMLElement,
+    lvIndex: number,
+    props?: SongProperties | null
+  ) {
+    const lv = props ? props.lv[lvIndex] : 0;
+    return lv || -getMinConstant(gameVer, getChartLv(levelElement));
   }
 
   function getChartLv(levelElement: HTMLElement, key: string = 'lv'): string | undefined {

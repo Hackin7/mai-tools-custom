@@ -88,6 +88,7 @@ export const TopChartRecords = (props: Props) => {
         <div>
           <div className="inlineBlock">
             <LevelRankDistribution
+              gameVer={songDatabase.gameVer}
               topLeftCell={CommonMessages[lang].level}
               chartRecords={records}
               topChartsCount={limit}

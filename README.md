@@ -45,10 +45,144 @@ https://sourcegraph.com/search?q=context%3Aglobal+repo%3A%5Egithub%5C.com%2Fmyji
 
 
 The edits made are a bit messy (due to eol issues)
-so here's a quick command for reference
 
-Update the branch depending on the time
+But the key files modified are (to allow for iframe support)
 
+1. `src/rating-calculator/components/RootComponent.tsx`
+2. `src\scripts\analyze-friend-rating-in-new-tab.ts`
+3. `src\scripts\analyze-rating-in-newtab.ts`
+
+
+
+```cpp
+private postMessageToOpener(data: {action: string; payload?: string | number}) {
+    if (window.opener) {
+      if (this.referrer) {
+        window.opener.postMessage(data, this.referrer);
+      } else {
+        // Unfortunately, document.referrer is not set when mai-tools is run on localhost.
+        // Send message to all maimai net origins and pray that one of them will respond.
+        for (const origin of MAIMAI_NET_ORIGINS) {
+          window.opener.postMessage(data, origin);
+        }
+      }
+    }
+
+    // NEW CODE /////////////////////////////////////////////////////
+    if (window.parent) {  
+      if (this.referrer) {
+        window.parent.postMessage(data, this.referrer);
+      } else {
+        // Unfortunately, document.referrer is not set when mai-tools is run on localhost.
+        // Send message to all maimai net origins and pray that one of them will respond.
+        for (const origin of MAIMAI_NET_ORIGINS) {
+          window.parent.postMessage(data, origin);
+        }
+      }
+    }
+    // NEW CODE /////////////////////////////////////////////////////
+  }
+
+private initWindowCommunication() {
+    window.addEventListener('message', (evt) => {
+    // if (!isMaimaiNetOrigin(evt.origin) && evt.origin !== window.origin) {
+    //     return;
+    // }
 ```
-git diff --ignore-space-at-eol head~1 head~3
+
+
+```cpp
+import {IFRAME_ID, addIframe, addFocusIframeListener} from './iframe-view';
+
+  function insertAnalyzeButton(friend: FriendInfo, container: HTMLElement) {
+    
+    ...
+
+    const analyzeRatingLink = d.createElement('a');
+    analyzeRatingLink.className = 'f_14';
+    analyzeRatingLink.style.color = '#1477e6';
+    analyzeRatingLink.target = IFRAME_ID; // NEW CODE
+    analyzeRatingLink.innerText = UIString[LANG].analyze;
+    analyzeRatingLink.href = BASE_URL + '/rating-calculator/?' + queryParams;
+    addFocusIframeListener(analyzeRatingLink); // NEW CODE
+
+    const analyzePlatesLink = document.createElement('a');
+    analyzePlatesLink.className = 'f_14';
+    analyzePlatesLink.style.color = '#1477e6';
+    analyzePlatesLink.target = IFRAME_ID; // NEW CODE
+    analyzePlatesLink.append(UIString[LANG].plateProgress);
+    analyzePlatesLink.href = BASE_URL + '/plate-progress/?' + queryParams;
+    addFocusIframeListener(analyzePlatesLink); // NEW CODE
+
+    ...
+
+  }
+
+
+  function main() {
+    if (!isMaimaiNetOrigin(document.location.origin)) {
+      handleError(UIString[LANG].pleaseLogIn);
+      return;
+    }
+    addIframe(); // NEW CODE
+    
+    ...
+
+    window.ratingCalcMsgListener = async (
+      evt: MessageEvent<{action: string; payload?: string | number}>
+    ) => {
+      console.log(evt.origin, evt.data);
+      
+    // NEW CODE ///////////////////////////////////////////////////////////
+    if (true){ //ALLOWED_ORIGINS.includes(evt.origin)) {
+        //const send = getPostMessageFunc(evt.source as WindowProxy, evt.origin);
+        const send = getPostMessageFunc((document.getElementById('bookmarkletView') as HTMLIFrameElement).contentWindow as WindowProxy, evt.origin);
+    // NEW CODE ///////////////////////////////////////////////////////////
+        
+```
+
+
+```cpp
+import {fetchAllSongs, getPostMessageFunc, handleError} from '../common/util';
+import {IFRAME_ID, addIframe, addFocusIframeListener} from './iframe-view';
+
+function insertAnalyzeButton(playerName: string) {
+    ...
+    const analyzeRatingLink = document.createElement('a');
+    analyzeRatingLink.className = 'f_14';
+    analyzeRatingLink.style.color = '#1477e6';
+    analyzeRatingLink.target = IFRAME_ID; // NEW CODE
+    analyzeRatingLink.append(UIString[LANG].analyze);
+    analyzeRatingLink.href = BASE_URL + '/rating-calculator/?' + urlSearch;
+    addFocusIframeListener(analyzeRatingLink); // NEW CODE
+
+    const analyzePlatesLink = document.createElement('a');
+    analyzePlatesLink.className = 'f_14';
+    analyzePlatesLink.style.color = '#1477e6';
+    analyzePlatesLink.target = IFRAME_ID; // NEW CODE
+    analyzePlatesLink.append(UIString[LANG].plateProgress);
+    analyzePlatesLink.href = BASE_URL + '/plate-progress/?' + urlSearch;
+    addFocusIframeListener(analyzePlatesLink); // NEW CODE
+    ...
+  }
+
+function main() {
+    if (!isMaimaiNetOrigin(document.location.origin)) {
+      handleError(UIString[LANG].pleaseLogIn);
+      return;
+    }
+    addIframe(); // NEWCODE
+    
+    ...
+    
+    window.ratingCalcMsgListener = async (
+      evt: MessageEvent<string | {action: string; payload?: string | number}>
+    ) => {
+      console.log(evt.origin, evt.data);
+      // NEW CODE /////////////////////////////////////////////////////
+      if (true) { //ALLOWED_ORIGINS.includes(evt.origin)) {
+        //const send = getPostMessageFunc(evt.source as WindowProxy, evt.origin);
+        const send = getPostMessageFunc((document.getElementById('bookmarkletView') as HTMLIFrameElement).contentWindow as WindowProxy, evt.origin);
+      // NEW CODE /////////////////////////////////////////////////////
+        //const send = getPostMessageFunc(evt.source as WindowProxy, evt.origin);
 ```

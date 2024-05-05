@@ -47,10 +47,7 @@ import {handleError} from '../common/util';
     ) {
       import('./score-sort');
     }
-  } else if (
-    path.indexOf('/maimai-mobile/home/') >= 0 ||
-    path.indexOf('/maimai-mobile/playerData/') >= 0
-  ) {
+  } else if (path.indexOf('/maimai-mobile/home/') >= 0 || path === '/maimai-mobile/playerData/') {
     removeScrollControl(d);
     import('./score-download');
     import('./analyze-rating-in-newtab');

@@ -12,7 +12,7 @@ export function getMaimaiSongsLink(
 ) {
   const q = new URLSearchParams();
 
-  level = level.replace('+', '.7');
+  level = level.replace('+', maxGameVer > GameVersion.BUDDiES ? '.6' : '.7');
   q.set('maxLevelValue', level);
   q.set('minLevelValue', level);
   if (useInternalLevel) {

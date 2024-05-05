@@ -9,7 +9,7 @@ import {
   getSongName,
   getSyncStatus,
 } from './fetch-score-util';
-import {getDefaultLevel} from './level-helper';
+import {getMinConstant} from './level-helper';
 import {fetchPage} from './net-helpers';
 import {SongDatabase} from './song-props';
 
@@ -81,7 +81,7 @@ function processRow(
     let level = props ? props.lv[difficulty] : 0;
     const levelIsPrecise = level > 0;
     if (!level) {
-      level = getDefaultLevel(getChartLevel(row));
+      level = getMinConstant(songDb.gameVer, getChartLevel(row));
     }
     return {
       songName,

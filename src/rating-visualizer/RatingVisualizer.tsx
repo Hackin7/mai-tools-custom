@@ -13,7 +13,7 @@ interface Props {
   canZoomIn: boolean;
   topPadding: number;
   ranks: ReadonlyArray<RankDef>;
-  handleSetRange: (minLv: string, maxLv: string) => void;
+  onSetRange: (minLv: string, maxLv: string) => void;
   axisLabelStep: number;
 }
 
@@ -27,8 +27,7 @@ export class RatingVisualizer extends React.PureComponent<Props, State> {
   state: State = {};
 
   render() {
-    const {axisLabelStep, canZoomIn, handleSetRange, heightUnit, levels, maxRating, ranks} =
-      this.props;
+    const {axisLabelStep, canZoomIn, onSetRange, heightUnit, levels, maxRating, ranks} = this.props;
     const {highlightInterval} = this.state;
     const containerHeight = this.getContainerHeight();
 
@@ -62,7 +61,7 @@ export class RatingVisualizer extends React.PureComponent<Props, State> {
                 heightUnit={heightUnit}
                 containerHeight={containerHeight}
                 ranks={ranks}
-                onZoomIn={handleSetRange}
+                onZoomIn={onSetRange}
                 highlightInterval={this.highlightInterval}
               />
             );

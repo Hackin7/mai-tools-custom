@@ -3,14 +3,16 @@ import {Difficulty} from '../common/difficulties';
 import {getPlayerGrade, getPlayerName} from '../common/fetch-score-util';
 import {fetchScores, fetchScoresFull, SELF_SCORE_URLS} from '../common/fetch-self-score';
 import {getGameRegionFromOrigin, isMaimaiNetOrigin} from '../common/game-region';
+import {GameVersion} from '../common/game-version';
 import {getInitialLanguage, Language, saveLanguage} from '../common/lang';
 import {fetchGameVersion} from '../common/net-helpers';
 import {QueryParam} from '../common/query-params';
 import {statusText} from '../common/score-fetch-progress';
 import {getScriptHost} from '../common/script-host';
 import {SongDatabase} from '../common/song-props';
-import {fetchAllSongs, getPostMessageFunc, handleError} from '../common/util';
 import {IFRAME_ID, addIframe, addFocusIframeListener} from './iframe-view';
+import {//ALLOWED_ORIGINS, 
+  fetchAllSongs, getPostMessageFunc, handleError} from '../common/util';
 
 declare global {
   interface Window {
@@ -46,6 +48,7 @@ declare global {
    * @return the Document of BASIC song scores page. (this is later used to get all songs)
    */
   async function fetchSelfRecords(
+    gameVer: GameVersion,
     send: (action: string, payload: unknown) => void,
     fullRecords: boolean = false
   ): Promise<Document> {
@@ -64,7 +67,7 @@ declare global {
         await (fullRecords ? fetchScoresFull : fetchScores)(
           difficulty,
           domCache,
-          new SongDatabase(null, null, false)
+          new SongDatabase(gameVer, null, false)
         )
       );
     }
@@ -96,18 +99,19 @@ declare global {
     const analyzeRatingLink = document.createElement('a');
     analyzeRatingLink.className = 'f_14';
     analyzeRatingLink.style.color = '#1477e6';
-    analyzeRatingLink.target = IFRAME_ID;
+    analyzeRatingLink.target = IFRAME_ID; // NEW CODE
     analyzeRatingLink.append(UIString[LANG].analyze);
     analyzeRatingLink.href = BASE_URL + '/rating-calculator/?' + urlSearch;
-    addFocusIframeListener(analyzeRatingLink);
+    addFocusIframeListener(analyzeRatingLink); // NEW CODE
+
 
     const analyzePlatesLink = document.createElement('a');
     analyzePlatesLink.className = 'f_14';
     analyzePlatesLink.style.color = '#1477e6';
-    analyzePlatesLink.target = IFRAME_ID;
+    analyzePlatesLink.target = IFRAME_ID; // NEW CODE
     analyzePlatesLink.append(UIString[LANG].plateProgress);
     analyzePlatesLink.href = BASE_URL + '/plate-progress/?' + urlSearch;
-    addFocusIframeListener(analyzePlatesLink);
+    addFocusIframeListener(analyzePlatesLink); // NEW CODE
 
     analyzeSpan.append(analyzeRatingLink, ' / ', analyzePlatesLink, document.createElement('br'));
 
@@ -128,7 +132,7 @@ declare global {
       handleError(UIString[LANG].pleaseLogIn);
       return;
     }
-    addIframe();
+    addIframe(); // NEWCODE
     const playerName = isOnFriendPage ? null : getPlayerName(document.body);
     insertAnalyzeButton(playerName);
     const gameVerPromise = fetchGameVersion(document.body);
@@ -140,22 +144,27 @@ declare global {
       evt: MessageEvent<string | {action: string; payload?: string | number}>
     ) => {
       console.log(evt.origin, evt.data);
+      
+      // NEW CODE /////////////////////////////////////////////////////
       if (true) { //ALLOWED_ORIGINS.includes(evt.origin)) {
         //const send = getPostMessageFunc(evt.source as WindowProxy, evt.origin);
         const send = getPostMessageFunc((document.getElementById('bookmarkletView') as HTMLIFrameElement).contentWindow as WindowProxy, evt.origin);
+      // NEW CODE /////////////////////////////////////////////////////
+
+        //const send = getPostMessageFunc(evt.source as WindowProxy, evt.origin);
         if (typeof evt.data === 'object') {
           if (evt.data.action === 'ready') {
             send('gameVersion', await gameVerPromise);
             if (typeof evt.data.payload === 'string') {
               LANG = evt.data.payload as Language;
             }
-            allSongsDom = fetchSelfRecords(send);
+            allSongsDom = fetchSelfRecords(await gameVerPromise, send);
             allSongsDom.then(fetchAllSongs).then((songs) => send('allSongs', songs));
           } else if (evt.data.action === 'fetchScoresFull') {
             if (typeof evt.data.payload === 'string') {
               LANG = evt.data.payload as Language;
             }
-            allSongsDom = fetchSelfRecords(send, true);
+            allSongsDom = fetchSelfRecords(await gameVerPromise, send, true);
           } else if (evt.data.action === 'saveLanguage') {
             LANG = evt.data.payload as Language;
             saveLanguage(LANG);

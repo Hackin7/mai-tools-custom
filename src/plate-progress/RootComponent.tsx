@@ -5,7 +5,7 @@ import {
   GameRegion,
   getGameRegionFromOrigin,
   getGameRegionFromShortString,
-  //isMaimaiNetOrigin,
+  isMaimaiNetOrigin,
   MAIMAI_NET_ORIGINS,
 } from '../common/game-region';
 import {GameVersion} from '../common/game-version';
@@ -45,9 +45,9 @@ export class RootComponent extends React.PureComponent<{}, State> {
       progress: '',
       playerScores: [],
     };
-    if (window.opener) {
+    //if (window.opener) {
       this.initWindowCommunication();
-    }
+    //}
   }
 
   render() {
@@ -109,7 +109,7 @@ export class RootComponent extends React.PureComponent<{}, State> {
 
   private initWindowCommunication = () => {
     window.addEventListener('message', (evt) => {
-      if (true){ //isMaimaiNetOrigin(evt.origin)) {
+      if (isMaimaiNetOrigin(evt.origin)) {
         this.referrer = evt.origin;
         console.log(evt.origin, evt.data);
         switch (evt.data.action) {

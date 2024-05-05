@@ -49,8 +49,9 @@ The edits made are a bit messy (due to eol issues)
 But the key files modified are (to allow for iframe support)
 
 1. `src/rating-calculator/components/RootComponent.tsx`
-2. `src\scripts\analyze-friend-rating-in-new-tab.ts`
-3. `src\scripts\analyze-rating-in-newtab.ts`
+2. `src/plate-progress/RootComponent.tsx`
+3. `src\scripts\analyze-friend-rating-in-new-tab.ts`
+4. `src\scripts\analyze-rating-in-newtab.ts`
 
 
 
@@ -90,6 +91,13 @@ private initWindowCommunication() {
     // }
 ```
 
+```cpp
+export class RootComponent extends React.PureComponent<{}, State> {
+  ...
+    //if (window.opener) {
+      this.initWindowCommunication();
+    //}
+```
 
 ```cpp
 import {IFRAME_ID, addIframe, addFocusIframeListener} from './iframe-view';

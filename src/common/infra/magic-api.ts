@@ -16,36 +16,51 @@ const OLD_KEYS_TO_CLEANUP = [
   'magicExpire',
 ];
 
-const MagicSauce: Record<GameVersion, string> = {
+const enum MagicFormat {
+  MAI_TOOLS,
+  ARCADE_SONGS,
+}
+
+interface MagicSauce {
+  sauce: string;
+  format: MagicFormat;
+}
+
+const MagicSauceByVersion: Record<GameVersion, MagicSauce> = {
   [GameVersion.FiNALE]: null,
   [GameVersion.DX]: null,
-  [GameVersion.UNIVERSE_PLUS]:
-    'aHR0cHM6Ly9naXN0LmdpdGh1YnVzZXJjb250ZW50LmNvbS9teWppYW4vZWU1NjlkNzRmNDIyZDRlMjU1MDY1ZDhiMDJlYTI5NGEvcmF3L21haWR4X2x2X3VuaXZlcnNlcGx1cy5qc29u',
-  [GameVersion.FESTiVAL]:
-    'aHR0cHM6Ly9naXN0LmdpdGh1YnVzZXJjb250ZW50LmNvbS9teWppYW4vMDg1NWM4OTQ3YjU0N2Q3YjliODg4MTU4NTEyZGRlNjkvcmF3L21haWR4X2x2X2Zlc3RpdmFsLmpzb24=',
-  [GameVersion.FESTiVAL_PLUS]:
-    'aHR0cHM6Ly9naXN0LmdpdGh1YnVzZXJjb250ZW50LmNvbS9teWppYW4vYWQyNjg1ODcyZmQ3ZjVjZDdhNDdlY2IzNDA1MTRlNmIvcmF3L21haWR4X2x2X2Zlc3RpdmFscGx1cy5qc29u',
-  [GameVersion.BUDDiES]:
-    'aHR0cHM6Ly9naXN0LmdpdGh1YnVzZXJjb250ZW50LmNvbS9teWppYW4vZThkOGJiMjcyZjMyYzJjOGE2ODU0MTQzZGUxY2FhZDEvcmF3Lw==',
-  [GameVersion.BUDDiES_PLUS]:
-    'aHR0cHM6Ly9naXN0LmdpdGh1YnVzZXJjb250ZW50LmNvbS9teWppYW4vZjA1OTMzMWViOWRhZWZlYjBkYzU3Y2UxNWU2ZjczZTkvcmF3Lw==',
-  [GameVersion.PRiSM]:
-    'aHR0cHM6Ly9zdG9yYWdlLmdvb2dsZWFwaXMuY29tL21haS10b29scy5hcHBzcG90LmNvbS9wcmlzbS5qc29u',
+  [GameVersion.UNIVERSE_PLUS]: {
+    format: MagicFormat.MAI_TOOLS,
+    sauce:
+      'aHR0cHM6Ly9naXN0LmdpdGh1YnVzZXJjb250ZW50LmNvbS9teWppYW4vZWU1NjlkNzRmNDIyZDRlMjU1MDY1ZDhiMDJlYTI5NGEvcmF3L21haWR4X2x2X3VuaXZlcnNlcGx1cy5qc29u',
+  },
+  [GameVersion.FESTiVAL]: {
+    format: MagicFormat.MAI_TOOLS,
+    sauce:
+      'aHR0cHM6Ly9naXN0LmdpdGh1YnVzZXJjb250ZW50LmNvbS9teWppYW4vMDg1NWM4OTQ3YjU0N2Q3YjliODg4MTU4NTEyZGRlNjkvcmF3L21haWR4X2x2X2Zlc3RpdmFsLmpzb24=',
+  },
+  [GameVersion.FESTiVAL_PLUS]: {
+    format: MagicFormat.MAI_TOOLS,
+    sauce:
+      'aHR0cHM6Ly9naXN0LmdpdGh1YnVzZXJjb250ZW50LmNvbS9teWppYW4vYWQyNjg1ODcyZmQ3ZjVjZDdhNDdlY2IzNDA1MTRlNmIvcmF3L21haWR4X2x2X2Zlc3RpdmFscGx1cy5qc29u',
+  },
+  [GameVersion.BUDDiES]: {
+    format: MagicFormat.MAI_TOOLS,
+    sauce:
+      'aHR0cHM6Ly9naXN0LmdpdGh1YnVzZXJjb250ZW50LmNvbS9teWppYW4vZThkOGJiMjcyZjMyYzJjOGE2ODU0MTQzZGUxY2FhZDEvcmF3Lw==',
+  },
+  [GameVersion.BUDDiES_PLUS]: {
+    format: MagicFormat.MAI_TOOLS,
+    sauce:
+      'aHR0cHM6Ly9naXN0LmdpdGh1YnVzZXJjb250ZW50LmNvbS9teWppYW4vZjA1OTMzMWViOWRhZWZlYjBkYzU3Y2UxNWU2ZjczZTkvcmF3Lw==',
+  },
+  [GameVersion.PRiSM]: {
+    format: MagicFormat.ARCADE_SONGS,
+    sauce: 'aHR0cHM6Ly9zdG9yYWdlLmdvb2dsZWFwaXMuY29tL21haS10b29scy5hcHBzcG90LmNvbS9wcmlzbS5qc29u',
+  },
 };
 
 const FALLBACK_VERSION = GameVersion.BUDDiES_PLUS;
-
-// If the value is true, we assume it is SongProperties[] stored as JSON.
-const MagicIsParsed: Record<GameVersion, boolean> = {
-  [GameVersion.FiNALE]: false,
-  [GameVersion.DX]: false,
-  [GameVersion.UNIVERSE_PLUS]: true,
-  [GameVersion.FESTiVAL]: true,
-  [GameVersion.FESTiVAL_PLUS]: true,
-  [GameVersion.BUDDiES]: true,
-  [GameVersion.BUDDiES_PLUS]: true,
-  [GameVersion.PRiSM]: false,
-};
 
 interface ArcadeSongResponse {
   songs: ArcadeSong[];
@@ -79,7 +94,7 @@ export class MagicApi {
   /**
    * Parse song properties from an ArcadeSong object.
    */
-  private parseSong(song: ArcadeSong, versions: string[]): SongProperties[] {
+  private parseArcadeSong(song: ArcadeSong, versions: string[]): SongProperties[] {
     const debutVer = versions.indexOf(song.version);
     if (debutVer < 0) {
       console.warn(`Cannot find debut version for ${song.title}.`, song);
@@ -121,26 +136,28 @@ export class MagicApi {
   }
 
   private async fetchMagic(gameVer: GameVersion): Promise<SongProperties[]> {
-    const sauce = MagicSauce[gameVer];
+    const sauce = MagicSauceByVersion[gameVer];
     if (!sauce) {
       return this.fetchMagic(FALLBACK_VERSION);
     }
-    const res = await fetch(atob(sauce));
+    const res = await fetch(atob(sauce.sauce));
     if (!res.ok) {
       const error = new Error(`Failed to load magic ${gameVer}`);
       console.warn(error.message);
       return Promise.reject(error);
     }
-    if (MagicIsParsed[gameVer]) {
+    if (sauce.format === MagicFormat.ARCADE_SONGS) {
+      const response: ArcadeSongResponse = await res.json();
+      const versions = response.versions.map((v) => v.version);
+      const songs: SongProperties[] = response.songs.reduce(
+        (songs, song) => songs.concat(this.parseArcadeSong(song, versions)),
+        []
+      );
+      return songs;
+    } else {
+      // No conversion required for MagicFormat.MAI_TOOLS
       return await res.json();
     }
-    const response: ArcadeSongResponse = await res.json();
-    const versions = response.versions.map((v) => v.version);
-    const songs: SongProperties[] = response.songs.reduce(
-      (songs, song) => songs.concat(this.parseSong(song, versions)),
-      []
-    );
-    return songs;
   }
 
   async loadMagic(gameVer: GameVersion): Promise<SongProperties[]> {

@@ -56,6 +56,7 @@ But the key files modified are (to allow for iframe support)
 
 
 ```cpp
+// remove isMaimaiNetOrigin from import
 private postMessageToOpener(data: {action: string; payload?: string | number}) {
     if (window.opener) {
       if (this.referrer) {
@@ -222,3 +223,18 @@ export function addFocusIframeListener(element: HTMLElement){
     });
 }
 ```
+
+Remove the `build` folder from `.gitignore`
+
+```
+*.un~
+/node_modules/
+.idea/
+.DS_Store
+```
+
+# Steps to updating this fork
+
+1. Change the code accordingly
+2. Build
+3. Push the code to the repo

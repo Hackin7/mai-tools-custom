@@ -5,7 +5,6 @@ import {
   GameRegion,
   getGameRegionFromOrigin,
   getGameRegionFromShortString,
-  isMaimaiNetOrigin,
   MAIMAI_NET_ORIGINS,
 } from '../../common/game-region';
 import {
@@ -224,12 +223,12 @@ export class RootComponent extends React.PureComponent<{}, State> {
 
   private initWindowCommunication() {
     window.addEventListener('message', (evt) => {
-      if (!isMaimaiNetOrigin(evt.origin) && evt.origin !== window.origin) {
-        return;
-      }
+      //if (!isMaimaiNetOrigin(evt.origin) && evt.origin !== window.origin) {
+      //  return;
+      //}
       this.referrer = evt.origin;
       console.log(evt.origin, evt.data);
-      if (typeof evt.data !== 'object') {if (window.opener) {
+      if (typeof evt.data !== 'object') {
         return;
       }
       let payloadAsInt;

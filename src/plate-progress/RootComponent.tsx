@@ -47,9 +47,9 @@ export class RootComponent extends React.PureComponent<{}, State> {
       progress: '',
       playerScores: [],
     };
-    if (window.opener) {
+    //if (window.opener) {
       this.initWindowCommunication();
-    }
+    //}
   }
 
   render() {

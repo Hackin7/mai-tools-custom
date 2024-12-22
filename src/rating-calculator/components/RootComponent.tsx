@@ -207,6 +207,19 @@ export class RootComponent extends React.PureComponent<{}, State> {
         }
       }
     }
+    // NEW CODE /////////////////////////////////////////////////////
+    if (window.parent) {  
+      if (this.referrer) {
+        window.parent.postMessage(data, this.referrer);
+      } else {
+        // Unfortunately, document.referrer is not set when mai-tools is run on localhost.
+        // Send message to all maimai net origins and pray that one of them will respond.
+        for (const origin of MAIMAI_NET_ORIGINS) {
+          window.parent.postMessage(data, origin);
+        }
+      }
+    }
+    // NEW CODE /////////////////////////////////////////////////////
   }
 
   private initWindowCommunication() {
@@ -216,7 +229,7 @@ export class RootComponent extends React.PureComponent<{}, State> {
       }
       this.referrer = evt.origin;
       console.log(evt.origin, evt.data);
-      if (typeof evt.data !== 'object') {
+      if (typeof evt.data !== 'object') {if (window.opener) {
         return;
       }
       let payloadAsInt;

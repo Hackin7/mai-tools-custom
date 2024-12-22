@@ -1,6 +1,8 @@
-import {isMaimaiNetOrigin} from './game-region';
+//import {isMaimaiNetOrigin} from './game-region';
 
 export const FALLBACK_MAI_TOOLS_BASE_URL = 'https://myjian.github.io/mai-tools';
+//export const FALLBACK_MAI_TOOLS_BASE_URL = 'https://hackin7.github.io/mai-tools-custom/build/'; // For using my URL
+
 // const fallbackMaiToolsBaseUrl = "http://localhost:8080";
 
 /**
@@ -25,11 +27,13 @@ export function getScriptHost(scriptName: string): string {
  * Can be used by scripts running on maimai NET or scripts on mai-tools itself.
  */
 export function getMaiToolsBaseUrl(): string {
+  return FALLBACK_MAI_TOOLS_BASE_URL;
+  /*
   if (isMaimaiNetOrigin(window.location.origin)) {
     return FALLBACK_MAI_TOOLS_BASE_URL;
   }
   if (window.location.pathname.startsWith('/mai-tools')) {
     return window.location.origin + '/mai-tools';
   }
-  return window.location.origin;
+  return window.location.origin;*/
 }

@@ -49,11 +49,6 @@ The edits made are a bit messy (due to eol issues)
 But the key files modified are (to allow for iframe support)
 
 1. `src/rating-calculator/components/RootComponent.tsx`
-2. `src/plate-progress/RootComponent.tsx`
-3. `src/scripts/analyze-friend-rating-in-new-tab.ts`
-4. `src/scripts/analyze-rating-in-newtab.ts`
-
-
 
 ```cpp
 // remove isMaimaiNetOrigin from import
@@ -92,6 +87,9 @@ private initWindowCommunication() {
     // }
 ```
 
+
+2. `src/plate-progress/RootComponent.tsx`
+
 ```cpp
 export class RootComponent extends React.PureComponent<{}, State> {
   ...
@@ -99,6 +97,9 @@ export class RootComponent extends React.PureComponent<{}, State> {
       this.initWindowCommunication();
     //}
 ```
+
+
+3. `src/scripts/analyze-friend-rating-in-new-tab.ts`
 
 ```cpp
 import {fetchAllSongs, getPostMessageFunc, handleError} from '../common/util';
@@ -151,6 +152,7 @@ import {IFRAME_ID, addIframe, addFocusIframeListener} from './iframe-view';
         
 ```
 
+4. `src/scripts/analyze-rating-in-newtab.ts`
 
 ```cpp
 import {fetchAllSongs, getPostMessageFunc, handleError} from '../common/util';
@@ -195,6 +197,50 @@ function main() {
         const send = getPostMessageFunc((document.getElementById('bookmarkletView') as HTMLIFrameElement).contentWindow as WindowProxy, evt.origin);
       // NEW CODE /////////////////////////////////////////////////////
         //const send = getPostMessageFunc(evt.source as WindowProxy, evt.origin);
+```
+
+5. `src/common/script-host.ts`
+
+```cpp
+//import {isMaimaiNetOrigin} from './game-region';
+
+export const FALLBACK_MAI_TOOLS_BASE_URL = 'https://myjian.github.io/mai-tools';
+//export const FALLBACK_MAI_TOOLS_BASE_URL = 'https://hackin7.github.io/mai-tools-custom/build/'; // For using my URL
+
+// const fallbackMaiToolsBaseUrl = "http://localhost:8080";
+
+/**
+ * Find where the scripts are loaded from. This function is usually used
+ * by scripts running on maimai NET.
+ */
+export function getScriptHost(scriptName: string): string {
+  const scripts = Array.from(document.querySelectorAll('script'));
+  while (scripts.length) {
+    const script = scripts.pop();
+    if (script.src.includes(scriptName) || script.src.includes('all-in-one')) {
+      const url = new URL(script.src);
+      const path = url.pathname;
+      return url.origin + path.substring(0, path.lastIndexOf('/scripts'));
+    }
+  }
+  return FALLBACK_MAI_TOOLS_BASE_URL;
+}
+
+/**
+ * Find the root url of mai-tools (this website).
+ * Can be used by scripts running on maimai NET or scripts on mai-tools itself.
+ */
+export function getMaiToolsBaseUrl(): string {
+  return FALLBACK_MAI_TOOLS_BASE_URL;
+  /*
+  if (isMaimaiNetOrigin(window.location.origin)) {
+    return FALLBACK_MAI_TOOLS_BASE_URL;
+  }
+  if (window.location.pathname.startsWith('/mai-tools')) {
+    return window.location.origin + '/mai-tools';
+  }
+  return window.location.origin;*/
+}
 ```
 
 Also create a new file  `/scripts/iframe-view.ts`

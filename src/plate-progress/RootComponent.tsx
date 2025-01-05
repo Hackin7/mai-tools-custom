@@ -8,7 +8,7 @@ import {
   isMaimaiNetOrigin,
   MAIMAI_NET_ORIGINS,
 } from '../common/game-region';
-import {GameVersion, validateGameVersion} from '../common/game-version';
+import {GameVersion, LATEST_VERSION, validateGameVersion} from '../common/game-version';
 import {getInitialLanguage, Language} from '../common/lang';
 import {QueryParam} from '../common/query-params';
 import {PlateProgress} from './PlateProgress';
@@ -18,6 +18,7 @@ interface State {
   lang: Language;
   progress: string;
   region: GameRegion;
+  currentVersion: GameVersion;
   version: string;
   playerName: string | null;
   friendIdx: string | null;
@@ -33,7 +34,7 @@ export class RootComponent extends React.PureComponent<{}, State> {
     const friendIdx = queryParams.get(QueryParam.FriendIdx);
     const playerName = queryParams.get(QueryParam.PlayerName);
     const gameVerParam = queryParams.get(QueryParam.GameVersion);
-    const gameVer = validateGameVersion(gameVerParam, GameVersion.FESTiVAL) - 1;
+    const gameVer = validateGameVersion(gameVerParam, LATEST_VERSION);
     const region = getGameRegionFromShortString(queryParams.get(QueryParam.GameRegion));
     const lang = getInitialLanguage();
     updateDocumentTitle(lang);
@@ -41,7 +42,8 @@ export class RootComponent extends React.PureComponent<{}, State> {
     this.state = {
       lang,
       region,
-      version: gameVer.toString(),
+      currentVersion: gameVer,
+      version: (gameVer - 1).toString(),
       friendIdx,
       playerName,
       progress: '',
@@ -53,7 +55,7 @@ export class RootComponent extends React.PureComponent<{}, State> {
   }
 
   render() {
-    const {playerName, region, version, progress, playerScores} = this.state;
+    const {playerName, region, version, progress, playerScores, currentVersion} = this.state;
     return (
       <div>
         <select onChange={this.handleSelectRegion} value={region}>
@@ -68,7 +70,12 @@ export class RootComponent extends React.PureComponent<{}, State> {
         <br />
         <h2>Player: {playerName}</h2>
         {progress ? <div>{progress}</div> : null}
-        <PlateProgress region={region} version={version} playerScores={playerScores} />
+        <PlateProgress
+          region={region}
+          currentVersion={currentVersion}
+          version={version}
+          playerScores={playerScores}
+        />
       </div>
     );
   }

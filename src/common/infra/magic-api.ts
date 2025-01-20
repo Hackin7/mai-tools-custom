@@ -56,7 +56,8 @@ const MagicSauceByVersion: Record<GameVersion, MagicSauce> = {
   },
   [GameVersion.PRiSM]: {
     format: MagicFormat.ARCADE_SONGS,
-    sauce: 'aHR0cHM6Ly9zdG9yYWdlLmdvb2dsZWFwaXMuY29tL21haS10b29scy5hcHBzcG90LmNvbS9wcmlzbS5qc29u',
+    sauce:
+      'aHR0cHM6Ly9teWppYW4uZ2l0aHViLmlvL1RhaXdhbi1pbmRlcGVuZGVuY2UvZXh0ZXJuYWwvYXJjYWRlLXNvbmdzLW1haW1haS5qc29u',
   },
 };
 

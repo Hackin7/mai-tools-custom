@@ -138,7 +138,7 @@ const analyzeFriendRating: Bookmarklet = {
     [Language.zh_TW]:
       '使用方式：於朋友清單頁面，先將想分析的好友加入最愛（ADD to FAVORITE），再執行書籤。設成最愛的好友檔案中會出現「分析 Rating」的連結，點擊後會分析該玩家的 R 值。',
     [Language.en_US]:
-      'Usage: Open friend list. Add the friend you want to analyze to FAVORITE. Run the bookmarklet. There will have an "Analyze Rating" link for each favorite friend. Click on one of the links to analyze rating for that player.',
+      'Usage: Open friend list. Add the friend you want to analyze to FAVORITE. Run the bookmarklet. There will be an "Analyze Rating" link for each favorite friend. Click on one of the links to analyze rating for that player.',
     [Language.ko_KR]:
       '사용법: 친구 목록 화면에 들어가서 분석하고 싶은 친구를 즐겨찾기에 등록하고 북마크를 실행합니다. 즐겨찾기에 등록된 친구는 "레이팅 분석하기" 링크가 표시 될 것입니다. 해당 링크를 클릭하면 친구의 레이팅을 분석 할 수 있습니다.',
   },
